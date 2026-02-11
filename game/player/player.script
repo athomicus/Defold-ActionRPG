@@ -1,0 +1,172 @@
+
+local MOVE_SPEED = 150
+
+function init(self)
+	-- allow us to detect inputs
+	msg.post(".", "acquire_input_focus")
+
+	-- define variables
+	self.mouse_pos = vmath.vector3()
+	self.mouse_dir = vmath.vector3()
+	self.move_up = false
+	self.move_down = false
+	self.move_left = false
+	self.move_right = false
+
+	self.velocity = vmath.vector3()
+
+	self.timer = 0
+	self.last_shoot_time = 0
+	self.shoot_rate = 0.1
+
+	self.cur_hp = 10
+	self.max_hp = 10
+
+	self.reset_color_time = 0
+end
+
+function update(self, dt)
+	self.timer = self.timer + dt
+	
+	-- get our world mouse position
+	local screen_width, screen_height = window.get_size()
+	local screen_center = vmath.vector3(screen_width / 2, screen_height / 2, 0)
+	local camera_pos = go.get_position("camera")
+	local camera_zoom = camera.get_orthographic_zoom("camera#camera")
+	
+	local world_mouse_pos = ((self.mouse_pos - screen_center) / camera_zoom) + camera_pos
+	world_mouse_pos.z = 0
+
+	self.mouse_dir = vmath.normalize(world_mouse_pos - go.get_position())
+	
+	-- flip sprite
+	sprite.set_hflip("#sprite", self.mouse_dir.x > 0)
+
+	-- camera follow
+	msg.post("camera#camera_controller", "follow", {
+		follow_pos = go.get_position()
+	})
+
+	if self.timer >= self.reset_color_time then
+		go.set("#sprite", "tint", vmath.vector4(1, 1, 1, 1))
+	end
+	
+	-- set health bar position
+	msg.post("#health_bar", "set_position", {
+		bar_world_pos = go.get_position() + vmath.vector3(0, 30, 0),
+		camera_pos = go.get_world_position("camera"),
+		camera_zoom = go.get("camera#camera", "orthographic_zoom")
+	})
+	
+	-- reset our velocity
+	self.velocity = vmath.vector3()
+
+	-- define velocity based on move inputs
+	if self.move_up == true then
+		self.velocity.y = self.velocity.y + 1
+	end
+
+	if self.move_down == true then
+		self.velocity.y = self.velocity.y - 1
+	end
+
+	if self.move_left == true then
+		self.velocity.x = self.velocity.x - 1
+	end
+
+	if self.move_right == true then
+		self.velocity.x = self.velocity.x + 1
+	end
+
+	-- reset move inputs
+	self.move_up = false
+	self.move_down = false
+	self.move_left = false
+	self.move_right = false
+
+	-- return if velocity is 0
+	if vmath.length(self.velocity) == 0 then
+		return
+	end
+
+	-- normalize the velocity
+	self.velocity = vmath.normalize(self.velocity)
+
+	-- apply our move speed
+	self.velocity = self.velocity * MOVE_SPEED
+
+	-- move the player
+	local pos = go.get_position()
+	pos = pos + self.velocity * dt
+	go.set_position(pos)
+end
+
+local function try_shoot (self)
+	-- return if we try to shoot too frequently
+	if self.timer - self.last_shoot_time < self.shoot_rate then
+		return
+	end
+
+	self.last_shoot_time = self.timer
+
+	local proj = factory.create("#projectile_factory", go.get_position())
+	msg.post(proj, "set_direction", {
+		move_dir = self.mouse_dir
+	})
+
+	sound.play("#shoot_sound")
+end
+
+local function take_damage (self, amount)
+	self.cur_hp = self.cur_hp - amount
+
+	msg.post("#health_bar", "set_health", {
+		cur_hp = self.cur_hp,
+		max_hp = self.max_hp
+	})
+
+	go.set("#sprite", "tint", vmath.vector4(1, 0, 0, 1))
+	self.reset_color_time = self.timer + 0.05
+
+	sound.play("#damage_sound")
+
+	-- go to menu when we die
+	if self.cur_hp <= 0 then
+		msg.post("game_controller:/gc#game_controller", "load_level", {
+			level = hash("menu")
+		})
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("take_damage") then
+		take_damage(self, message.damage)
+	end
+end
+
+function on_input(self, action_id, action)
+	-- OLD METHOD: gets gui coordinates
+	-- self.mouse_pos.x = action.x
+	-- self.mouse_pos.y = action.y
+	
+	-- updated: checks, then gets screen coordinates
+	if action.screen_x then
+		self.mouse_pos.x = action.screen_x
+		self.mouse_pos.y = action.screen_y
+	end
+
+	if action_id == hash("move_up") then
+		self.move_up = true
+	elseif action_id == hash("move_down") then
+		self.move_down = true
+	elseif action_id == hash("move_left") then
+		self.move_left = true
+	elseif action_id == hash("move_right") then
+		self.move_right = true
+	end
+
+	if action_id == hash("shoot") then
+		try_shoot(self)
+	end
+end
+

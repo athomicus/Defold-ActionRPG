@@ -1,0 +1,85 @@
+script: "/game/menu/menu.gui_script"
+fonts {
+  name: "default"
+  font: "/builtins/fonts/default.font"
+}
+nodes {
+  position {
+    x: 480.0
+    y: 561.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "ACTION RPG"
+  font: "default"
+  id: "header"
+  yanchor: YANCHOR_TOP
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 480.0
+    y: 352.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.502
+    y: 0.0
+    z: 0.502
+  }
+  type: TYPE_BOX
+  id: "play_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "PLAY"
+  font: "default"
+  id: "text"
+  parent: "play_button"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 480.0
+    y: 218.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.502
+    y: 0.0
+    z: 0.502
+  }
+  type: TYPE_BOX
+  id: "quit_button"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "QUIT"
+  font: "default"
+  id: "text1"
+  parent: "quit_button"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

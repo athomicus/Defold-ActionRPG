@@ -1,0 +1,101 @@
+
+local MOVE_SPEED = 50
+local ATTACK_RANGE = 40
+local ATTACK_RATE = 0.5
+
+go.property("target", msg.url())
+
+function init(self)
+	-- initialize variables
+	self.velocity = vmath.vector3()
+	self.player_position = vmath.vector3()
+	self.player_direction = vmath.vector3()
+	self.player_distance = 9999
+
+	self.last_attack_time = 0
+	self.timer = 0
+
+	self.cur_hp = 5
+	self.max_hp = 5
+
+	self.reset_color_time = 0
+end
+
+local function try_attack (self)
+	if self.timer - self.last_attack_time < ATTACK_RATE then
+		return
+	end
+
+	if self.player_distance > ATTACK_RANGE then
+		return
+	end
+
+	self.last_attack_time = self.timer
+	
+	msg.post(self.target, "take_damage", {
+		damage = 1
+	})
+end
+
+function update(self, dt)
+	self.timer = self.timer + dt
+	
+	local pos = go.get_position()
+
+	try_attack(self)
+
+	if self.timer >= self.reset_color_time then
+		go.set("#sprite", "tint", vmath.vector4(1, 1, 1, 1))
+	end
+
+	-- get info about the player
+	self.player_position = go.get_position(self.target)
+	self.player_direction = vmath.normalize(self.player_position - pos)
+	self.player_distance = vmath.length(self.player_position - pos)
+
+	sprite.set_hflip("#sprite", self.player_direction.x > 0)
+
+	-- set health bar position
+	msg.post("#health_bar", "set_position", {
+		bar_world_pos = go.get_position() + vmath.vector3(0, 30, 0),
+		camera_pos = go.get_position("player/camera#camera"),
+		camera_zoom = go.get("game:/player/camera#camera", "orthographic_zoom")
+	})
+	
+	if self.player_distance <= ATTACK_RANGE then
+		return
+	end
+	
+	-- move towards the player
+	pos = pos + self.player_direction * MOVE_SPEED * dt
+	go.set_position(pos)
+end
+
+local function take_damage (self, amount)
+	self.cur_hp = self.cur_hp - amount
+
+	msg.post("#health_bar", "set_health", {
+		cur_hp = self.cur_hp,
+		max_hp = self.max_hp
+	})
+
+	go.set("#sprite", "tint", vmath.vector4(1, 0, 0, 1))
+	self.reset_color_time = self.timer + 0.05
+
+	sound.play("#damage_sound")
+	
+	if self.cur_hp <= 0 then
+		go.delete()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("take_damage") then
+		take_damage(self, message.damage)
+	end
+end
+
+
+
+
+

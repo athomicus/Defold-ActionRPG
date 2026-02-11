@@ -1,0 +1,36 @@
+name: "game"
+instances {
+  id: "enemy"
+  prototype: "/game/entities/enemy.go"
+  position {
+    x: -122.0
+    y: 121.0
+  }
+}
+collection_instances {
+  id: "player"
+  collection: "/game/player/player.collection"
+}
+scale_along_z: 0
+embedded_instances {
+  id: "tilemap"
+  data: "components {\n"
+  "  id: \"game\"\n"
+  "  component: \"/game/levels/game.tilemap\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "manager"
+  data: "components {\n"
+  "  id: \"game_manager\"\n"
+  "  component: \"/game/game_manager.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"enemy_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/game/entities/enemy.go\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+}

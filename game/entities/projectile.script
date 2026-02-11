@@ -1,0 +1,46 @@
+
+local SPEED = 200
+
+function init(self)
+	self.move_dir = vmath.vector3()
+	self.timer = 2
+end
+
+function update(self, dt)
+	-- move the projectile
+	local pos = go.get_position()
+	pos = pos + self.move_dir * SPEED * dt
+	go.set_position(pos)
+
+	-- delete after 2 seconds
+	self.timer = self.timer - dt
+
+	if self.timer < 0 then
+		go.delete()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("set_direction") then
+		self.move_dir = message.move_dir
+	end
+
+	if message_id == hash("trigger_response") then
+		if message.enter then
+			if message.other_group == hash("enemy") then
+				msg.post(message.other_id, "take_damage", {
+					damage = 1
+				})
+				go.delete()
+			end
+		end
+	end
+end
+
+
+
+
+
+
+
+

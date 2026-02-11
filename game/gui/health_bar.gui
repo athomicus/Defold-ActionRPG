@@ -1,0 +1,36 @@
+script: "/game/gui/health_bar.gui_script"
+nodes {
+  size {
+    x: 60.0
+    y: 10.0
+  }
+  color {
+    x: 0.2
+    y: 0.2
+    z: 0.2
+  }
+  type: TYPE_BOX
+  id: "health_bar"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -28.0
+  }
+  size {
+    x: 56.0
+    y: 6.0
+  }
+  color {
+    y: 0.119
+    z: 0.227
+  }
+  type: TYPE_BOX
+  id: "fill"
+  pivot: PIVOT_W
+  parent: "health_bar"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

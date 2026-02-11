@@ -1,0 +1,41 @@
+
+local function load_level (self, level_to_load)
+	if self.current_level ~= nil then
+		msg.post(self.current_level, "unload")
+	end
+
+	local level_url = msg.url(nil, nil, level_to_load)
+	self.current_level = level_url
+	msg.post(self.current_level, "load")
+end
+
+function init(self)
+	self.current_level = nil
+	msg.post(".", "acquire_input_focus")
+
+	-- load the menu at the start of the game
+	load_level(self, "menu")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("load_level") then
+		load_level(self, message.level)
+	end
+
+	if message_id == hash("proxy_loaded") then
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+

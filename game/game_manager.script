@@ -1,0 +1,30 @@
+
+function init(self)
+	self.spawn_rate = 2
+	self.timer = 0
+	self.last_spawn_time = 0
+end
+
+local function spawn_enemy (self)
+	self.last_spawn_time = self.timer
+
+	local enemy = factory.create("#enemy_factory")
+
+	-- pick a random position on the map
+	local spawn_pos = vmath.vector3()
+	spawn_pos.x = math.random(-450, 450)
+	spawn_pos.y = math.random(-450, 450)
+	go.set_position(spawn_pos, enemy)
+end
+
+function update(self, dt)
+	self.timer = self.timer + dt
+
+	-- make enemies spawn faster over time
+	self.spawn_rate = self.spawn_rate - (dt * 0.01)
+
+	-- spawn an enemy every spawn_rate seconds
+	if self.timer - self.last_spawn_time > self.spawn_rate then
+		spawn_enemy(self)
+	end
+end

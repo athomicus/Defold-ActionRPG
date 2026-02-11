@@ -1,0 +1,35 @@
+
+function init(self)
+	self.bar_node = gui.get_node("health_bar")
+	self.fill_node = gui.get_node("fill")
+	self.bar_world_pos = vmath.vector3()
+	self.camera_pos = vmath.vector3()
+	self.camera_zoom = 0
+end
+
+function update(self, dt)
+	local screen_width, screen_height = window.get_size()
+	local screen_center = vmath.vector3(screen_width / 2, screen_height / 2, 0)
+	self.camera_pos.z = 0
+	
+	local bar_screen_pos = (self.bar_world_pos - self.camera_pos) * self.camera_zoom + screen_center
+	
+	-- OLD METHOD: breaks when screen is resized
+	-- gui.set_position(self.bar_node, bar_screen_pos)
+	
+	-- updated method
+	gui.set_screen_position(self.bar_node, bar_screen_pos)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("set_health") then
+		local health_percent = message.cur_hp / message.max_hp
+		gui.set_size(self.fill_node, vmath.vector3(56 * health_percent, 6, 0))
+	end
+
+	if message_id == hash("set_position") then
+		self.bar_world_pos = message.bar_world_pos
+		self.camera_pos = message.camera_pos
+		self.camera_zoom = message.camera_zoom
+	end
+end

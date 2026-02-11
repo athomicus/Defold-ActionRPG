@@ -1,0 +1,22 @@
+name: "game_controller"
+scale_along_z: 0
+embedded_instances {
+  id: "gc"
+  data: "components {\n"
+  "  id: \"game_controller\"\n"
+  "  component: \"/game/controller/game_controller.script\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"menu\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/game/menu/menu.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"game\"\n"
+  "  type: \"collectionproxy\"\n"
+  "  data: \"collection: \\\"/game/levels/game.collection\\\"\\n"
+  "\"\n"
+  "}\n"
+  ""
+}

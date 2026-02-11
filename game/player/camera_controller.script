@@ -1,0 +1,55 @@
+
+local LEFT_BOUNDARY = -480
+local RIGHT_BOUNDARY = 480
+local UP_BOUNDARY = 480
+local DOWN_BOUNDARY = -480
+
+function init(self)
+	self.follow_pos = vmath.vector3()
+end
+
+local function clamp (value, min, max)
+	if value < min then
+		return min
+	elseif value > max then
+		return max
+	else
+		return value
+	end
+end
+
+function update(self, dt)
+	-- camera follow
+	local pos = go.get_position()
+	pos = vmath.lerp(15 * dt, pos, self.follow_pos)
+	go.set_position(pos)
+
+	-- camera boundary
+
+	-- 1) get screen center
+	local screen_width, screen_height = window.get_size()
+
+	-- zoom based on screen size
+	local res_diff = screen_width / 960
+	go.set("#camera", "orthographic_zoom", 2 * res_diff)
+	
+	-- don't clamp if our screen is too large
+	--if screen_width > 1000 then
+	--	return
+	--end
+	
+	local zoom = camera.get_orthographic_zoom("#camera")
+	local screen_center = vmath.vector3(screen_width / 2 / zoom, screen_height / 2 / zoom, 0)
+
+	-- 2) clamp the camera position to the boundary
+	pos.x = clamp(pos.x, LEFT_BOUNDARY + screen_center.x, RIGHT_BOUNDARY - screen_center.x)
+	pos.y = clamp(pos.y, DOWN_BOUNDARY + screen_center.y, UP_BOUNDARY - screen_center.y)
+	
+	go.set_position(pos)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("follow") then
+		self.follow_pos = message.follow_pos
+	end
+end
